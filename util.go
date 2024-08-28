@@ -87,3 +87,13 @@ func writeBits(bytes []byte, addr int, value uint64, nBits int) {
 		nBits -= bitsToWrite
 	}
 }
+
+func resizeByteSlice(slice []byte, newLength int) []byte {
+	slice = slice[:cap(slice)]
+
+	if len(slice) >= newLength {
+		return slice[:newLength]
+	}
+
+	return append(slice, make([]byte, newLength-len(slice))...)
+}
