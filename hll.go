@@ -357,12 +357,7 @@ func (h *Hll) union(other Hll, strict bool) error {
 	return nil
 }
 
-// ToBytes returns a byte slice with the serialized Hll value per the storage
-// spec https://github.com/aggregateknowledge/hll-storage-spec/blob/master/STORAGE.md.
-func (h *Hll) ToBytes() []byte {
-
-	h.initOrPanic()
-
+func (h *Hll) GetStorageTypeAndSizeInBytes() (storageType, int) {
 	var storageType storageType
 
 	switch h.storage.(type) {
@@ -382,8 +377,10 @@ func (h *Hll) ToBytes() []byte {
 		bytesNeeded = h.storage.sizeInBytes(h.settings)
 	}
 
-	bytes := make([]byte, 3 /*header bytes*/ +bytesNeeded)
+	return storageType, bytesNeeded
+}
 
+func (h *Hll) writeStorageBytes(bytes []byte, storageType storageType) []byte {
 	bytes[0] = (1 << 4) | byte(storageType)
 	bytes[1] = byte(((h.settings.regwidth - 1) << 5) | h.settings.log2m)
 	bytes[2] = packCutoffByte(h.settings)
@@ -393,6 +390,34 @@ func (h *Hll) ToBytes() []byte {
 	}
 
 	return bytes
+}
+
+func (h *Hll) toBytesInternal(inputBytes []byte, inPlace bool) []byte {
+	h.initOrPanic()
+
+	storageType, bytesNeeded := h.GetStorageTypeAndSizeInBytes()
+	totalBytesNeeded := 3 /*header bytes*/ + bytesNeeded
+
+	if inPlace && inputBytes != nil {
+		inputBytes = resizeByteSlice(inputBytes, totalBytesNeeded)
+	} else {
+		inputBytes = make([]byte, totalBytesNeeded)
+	}
+
+	return h.writeStorageBytes(inputBytes, storageType)
+}
+
+// ToBytes returns a byte slice with the serialized Hll value per the storage
+// spec https://github.com/aggregateknowledge/hll-storage-spec/blob/master/STORAGE.md.
+func (h *Hll) ToBytes() []byte {
+	return h.toBytesInternal(nil, false)
+}
+
+// ToBytesInPlace serializes the Hll value into the provided byte slice.
+// If the provided byte slice is nil or not large enough, a new byte slice will
+// be allocated and returned.
+func (h *Hll) ToBytesInPlace(inputBytes []byte) []byte {
+	return h.toBytesInternal(inputBytes, true)
 }
 
 // Clear resets this Hll.  Unlike other implementations that leave the backing

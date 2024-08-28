@@ -11,6 +11,8 @@ import (
 
 func Test_ZeroValue_NoDefaultSettings(t *testing.T) {
 
+	inputBytes := make([]byte, 10)
+
 	tests := []struct {
 		label string
 		op    func(hll Hll)
@@ -38,6 +40,10 @@ func Test_ZeroValue_NoDefaultSettings(t *testing.T) {
 		{
 			label: "ToBytes",
 			op:    func(hll Hll) { hll.ToBytes() },
+		},
+		{
+			label: "ToBytesInPlace",
+			op:    func(hll Hll) { hll.ToBytesInPlace(inputBytes) },
 		},
 		{
 			label: "Clear",
@@ -112,6 +118,14 @@ func Test_ZeroValue_WithDefaultSettings(t *testing.T) {
 			result: []byte{0x11, 0xbf, 0x7f},
 		},
 		{
+			label: "ToBytesInPlace",
+			op: func(hll Hll) interface{} {
+				inputBytes := make([]byte, 10)
+				return hll.ToBytesInPlace(inputBytes)
+			},
+			result: []byte{0x11, 0xbf, 0x7f},
+		},
+		{
 			label: "Clear",
 			op: func(hll Hll) interface{} {
 				hll.Clear()
@@ -161,6 +175,10 @@ func Test_Undefined(t *testing.T) {
 		{
 			label: "ToBytes",
 			op:    func(hll Hll) { hll.ToBytes() },
+		},
+		{
+			label: "ToBytesInPlace",
+			op:    func(hll Hll) { hll.ToBytesInPlace(make([]byte, 10)) },
 		},
 		{
 			label: "Clear",
