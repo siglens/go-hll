@@ -358,6 +358,7 @@ func (h *Hll) union(other Hll, strict bool) error {
 }
 
 // GetStorageTypeAndSizeInBytes returns the storage type and the number of bytes needed to serialize this Hll.
+// This includes the 3 header bytes and the bytes needed for the storage.
 func (h *Hll) GetStorageTypeAndSizeInBytes() (storageType, int) {
 	var storageType storageType
 
@@ -377,8 +378,9 @@ func (h *Hll) GetStorageTypeAndSizeInBytes() (storageType, int) {
 	if h.storage != nil {
 		bytesNeeded = h.storage.sizeInBytes(h.settings)
 	}
+	totalBytesNeeded := 3 /*header bytes*/ + bytesNeeded
 
-	return storageType, bytesNeeded
+	return storageType, totalBytesNeeded
 }
 
 func (h *Hll) writeStorageBytes(bytes []byte, storageType storageType) []byte {
@@ -397,12 +399,11 @@ func (h *Hll) toBytesInternal(inputBytes []byte, inPlace bool) []byte {
 	h.initOrPanic()
 
 	storageType, bytesNeeded := h.GetStorageTypeAndSizeInBytes()
-	totalBytesNeeded := 3 /*header bytes*/ + bytesNeeded
 
 	if inPlace && inputBytes != nil {
-		inputBytes = resizeByteSlice(inputBytes, totalBytesNeeded)
+		inputBytes = resizeByteSlice(inputBytes, bytesNeeded)
 	} else {
-		inputBytes = make([]byte, totalBytesNeeded)
+		inputBytes = make([]byte, bytesNeeded)
 	}
 
 	return h.writeStorageBytes(inputBytes, storageType)
