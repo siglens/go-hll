@@ -1,4 +1,4 @@
-module github.com/segmentio/go-hll
+module github.com/siglens/go-hll
 
 go 1.17
 
