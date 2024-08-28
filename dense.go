@@ -46,7 +46,7 @@ func (s denseStorage) writeBytes(settings *settings, bytes []byte) {
 
 	// deal with any remaining bytes.  the binary writing function above doesn't
 	// handle the case where there are not exactly 8 bytes to write.
-	remainder := cap(bytes) % 8
+	remainder := len(bytes) % 8
 	if remainder > 0 && nWords < len(s) {
 		lastWord := s[nWords]
 		for i := 0; i < remainder; i++ {
