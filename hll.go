@@ -357,6 +357,7 @@ func (h *Hll) union(other Hll, strict bool) error {
 	return nil
 }
 
+// GetStorageTypeAndSizeInBytes returns the storage type and the number of bytes needed to serialize this Hll.
 func (h *Hll) GetStorageTypeAndSizeInBytes() (storageType, int) {
 	var storageType storageType
 
